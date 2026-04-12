@@ -1,0 +1,18 @@
+[project]
+name = "branchy"
+version = "0.1.0"
+description = "Branching conversation trees for AI chat. Store, retrieve, and route conversations with tree-based memory."
+readme = "README.md"
+requires-python = "~=3.12.0"
+dependencies = [
+    "dspy==3.0.4",
+    "mlflow>=3.11.1",
+    "pydantic>=2.12.5",
+]
+authors = [
+    {name = "Bhasker Raju", email = "saibhaskerraju@outlook.com"}
+]
+maintainers = [
+    {name = "Bhasker Raju", email = "saibhaskerraju@outlook.com"}
+]
+keywords = ["conversation", "tree", "chat", "llm", "dspy", "branching"]
