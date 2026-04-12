@@ -1,4 +1,4 @@
-# ramify
+# branchy
 
 Store conversation turns as a tree structure, retrieve relevant context traces, and let your LLM automatically route new prompts to the right branch.
 
