@@ -69,3 +69,4 @@ jobs:
           name: v${{ inputs.version }}
           generate_release_notes: true
           prerelease: ${{ inputs.prerelease }}
+          token: ${{ secrets.RELEASE_PAT }}
