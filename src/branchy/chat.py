@@ -53,12 +53,16 @@ class BranchingChat:
         )
         return message_id
 
-    def show_tree(self, print_output: bool = True) -> str:
-        """Render the current user-message tree and optionally print it."""
+    def show_tree(self) -> str:
+        """Render the current user-message tree."""
 
         tree_output = self.tree.render_tree()
-        if print_output:
-            print(tree_output)
+        return tree_output
+
+    def show_subtree(self, message_id: str) -> str:
+        """Render a subtree starting from a given message_id and all its child branches."""
+
+        tree_output = self.tree.render_subtree(message_id)
         return tree_output
 
     def _find_best_trace(self, user_message: str) -> Optional[dict[str, Any]]:
@@ -119,11 +123,10 @@ class BranchingChat:
                 "target_message_id": best_match["trace"]["end_message_id"],
             }
         if action == "NEW_BRANCH":
-            root_of_trace = best_match["trace"]["messages"][0]
             return {
                 "action": "NEW_BRANCH",
                 "explanation": decision_result.explanation,
-                "target_message_id": root_of_trace.message_id,
+                "target_message_id": best_match["trace"]["root_assistant_id"],
             }
 
         return {
@@ -136,9 +139,11 @@ class BranchingChat:
         if decision["action"] in ("ATTACH", "NEW_BRANCH") and decision["target_message_id"]:
             path = self.tree.get_path_to_root(decision["target_message_id"])
             context_lines = []
-            for message in path:
-                context_lines.append(f"User: {message.user}")
-                context_lines.append(f"Assistant: {message.assistant}")
+            for node in path:
+                if node.node_type == "user":
+                    context_lines.append(f"User: {node.content}")
+                else:
+                    context_lines.append(f"Assistant: {node.content}")
             context = "\n".join(context_lines)
         else:
             context = "Starting a completely new conversation"
