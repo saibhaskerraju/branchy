@@ -1,4 +1,4 @@
-# branchy
+# branchy-chat
 
 Store conversation messages as a tree structure, retrieve relevant context traces, and let your LLM automatically route new prompts to the right branch.
 
@@ -10,7 +10,7 @@ Store conversation messages as a tree structure, retrieve relevant context trace
 ## Installation
 
 ```bash
-pip install branchy
+pip install branchy-chat
 ```
 
 ## Usage
