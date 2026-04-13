@@ -1,0 +1,71 @@
+name: Create Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (must match pyproject.toml, e.g. 0.1.1)
+        required: true
+        type: string
+      prerelease:
+        description: Mark the GitHub release as prerelease
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and metadata
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import tomllib
+          from pathlib import Path
+
+          version = os.environ["INPUT_VERSION"].strip()
+          if not re.match(r"^\d+\.\d+\.\d+([a-zA-Z0-9\.\-]*)?$", version):
+              raise SystemExit(f"Invalid version format: {version}")
+
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          project_version = pyproject["project"]["version"]
+          if project_version != version:
+              raise SystemExit(
+                  f"Version mismatch: input={version}, pyproject.toml={project_version}. "
+                  "Update pyproject.toml before creating a release."
+              )
+
+          print(f"Version check passed: {version}")
+          PY
+
+      - name: Ensure release tag does not already exist
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          TAG="v${INPUT_VERSION}"
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists."
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ inputs.prerelease }}

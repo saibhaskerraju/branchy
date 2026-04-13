@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "branchy"
 version = "0.1.0"
@@ -15,4 +19,10 @@ authors = [
 maintainers = [
     {name = "Bhasker Raju", email = "saibhaskerraju@outlook.com"}
 ]
-keywords = ["conversation", "tree", "chat", "llm", "dspy", "branching"]
+keywords = ["conversation", "tree", "chat", "llm", "branching"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
