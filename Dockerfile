@@ -6,7 +6,10 @@ RUN pip install --no-cache-dir uv==0.11.6
 
 WORKDIR /app
 
-COPY uv.lock pyproject.toml ./
+# COPY uv.lock pyproject.toml README.md ./  # Add README.md here
+# COPY src ./src  # Add this to copy your source code
+
+COPY . .
 
 # Install dependencies
 RUN uv sync --frozen --no-cache
