@@ -4,13 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "branchy-chat"
-version = "0.1.2"
+version = "0.3.0"
 description = "Branching conversation trees for AI chat. Store, retrieve, and route conversations with tree-based memory."
 readme = "README.md"
-requires-python = "~=3.12.0"
+requires-python = ">=3.12"
 dependencies = [
-    "dspy==3.0.4",
     "pydantic>=2.12.5",
+    "litellm>=1.103,<2",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
 ]
 authors = [
     {name = "Bhasker Raju", email = "saibhaskerraju@outlook.com"}
