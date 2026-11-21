@@ -1,18 +1,25 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "branchy-chat"
-version = "0.3.0"
-description = "Branching conversation trees for AI chat. Store, retrieve, and route conversations with tree-based memory."
+version = "0.4.0"
+description = "Conversation memory as a tree: each message is routed to the right branch, and the LLM gets only that branch's history."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "src/branchy/router/data/NOTICE"]
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.12.5",
     "litellm>=1.103,<2",
+    "tokenizers>=0.20",
 ]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -25,10 +32,26 @@ authors = [
 maintainers = [
     {name = "Bhasker Raju", email = "saibhaskerraju@outlook.com"}
 ]
-keywords = ["conversation", "tree", "chat", "llm", "branching"]
+keywords = ["conversation", "tree", "chat", "llm", "branching", "memory", "routing", "context"]
+
+[project.urls]
+Homepage = "https://github.com/saibhaskerraju/branchy"
+Repository = "https://github.com/saibhaskerraju/branchy"
+Issues = "https://github.com/saibhaskerraju/branchy/issues"
+Changelog = "https://github.com/saibhaskerraju/branchy/blob/master/CHANGELOG.md"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"branchy.router" = ["data/*"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]

@@ -41,6 +41,13 @@ HTML = r"""<!DOCTYPE html>
   .badge.active { background: #dafbe1; color: var(--green);
                   border-color: #4ac26b; }
   .badge.root { background: #eaeef2; }
+  .badge.act-new { background: #fff1e5; }
+  .badge.act-continue { background: #f6f8fa; }
+  .badge.act-switch { background: #ddf4ff; }
+  .badge.act-fork { background: #fbefff; }
+  .badge.llm { background: #eef1ff; color: #3b44b0; border-color: #a5adf0; }
+  td.pass { color: var(--green); }
+  td.fail { color: var(--amber); }
   .snippet { font-family: ui-monospace, Consolas, monospace; font-size: 12px;
              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
              max-width: 480px; display: inline-block; vertical-align: bottom; }
@@ -78,8 +85,7 @@ HTML = r"""<!DOCTYPE html>
   "use strict";
   var inline = document.getElementById("snapshot");
   var staticMode = !!inline;
-  var state = { collapsed: new Set(), selected: null, version: null,
-                snap: null, etag: null };
+  var state = { collapsed: new Set(), selected: null, snap: null, etag: null };
   var refreshMs = parseInt(document.body.getAttribute("data-refresh") || "0", 10) * 1000;
 
   if (staticMode) {
@@ -152,6 +158,7 @@ HTML = r"""<!DOCTYPE html>
       (trees.length > 1 ? " · " + trees.length + " trees" : "");
     var roots = [];
     trees.forEach(function (tree) {
+      tree._activeLeaf = activeLeaf(tree);
       var byParent = {};
       tree.nodes.forEach(function (n) {
         var p = n.parent_message_id || "";
@@ -162,14 +169,32 @@ HTML = r"""<!DOCTYPE html>
       });
     });
 
+    function activeLeaf(tree) {
+      var newest = null;
+      tree.nodes.forEach(function (n) {
+        if (n.node_type === "user" &&
+            (!newest || n.created_seq > newest.created_seq)) newest = n;
+      });
+      return newest && newest.child_message_ids && newest.child_message_ids[0];
+    }
+
     function li(tree, byParent, n) {
       var kids = byParent[n.message_id] || [];
       var key = (tree.tree_id || "default") + ":" + n.message_id;
       var collapsed = state.collapsed.has(key);
       var badges = '<span class="badge role-' +
         (n.node_type === "user" ? "u\">U" : "a\">A") + "</span>";
-      if (n.message_id === tree.active_root_id)
+      if (n.message_id === tree._activeLeaf)
         badges += '<span class="badge active">active</span>';
+      if (n.node_type === "user" && n.routing && n.routing.action) {
+        var act = String(n.routing.action);
+        badges += '<span class="badge act-' + esc(act.toLowerCase()) + '">' +
+          esc(act.toLowerCase()) +
+          (n.routing.decided_by === "explicit" ? " (explicit)" : "") + "</span>";
+        if (n.routing.llm)
+          badges += '<span class="badge llm">' + (n.routing.llm.error ? "llm failed" :
+            n.routing.llm.agreed ? "llm agreed" : "llm override") + "</span>";
+      }
       if (!n.parent_message_id)
         badges += '<span class="badge root">root</span>';
       if (n.tentative)
@@ -195,7 +220,7 @@ HTML = r"""<!DOCTYPE html>
     }
 
     var html = '<ul class="nodes root"><li class="node"><div class="box">' +
-      '<span class="badge root">All conversations</span></div><ul class="nodes">';
+      '<span class="badge root">conversation</span></div><ul class="nodes">';
     var grouped = {};
     var order = [];
     roots.forEach(function (r) {
@@ -281,21 +306,59 @@ HTML = r"""<!DOCTYPE html>
 
     if (node.node_type === "user" && node.routing) {
       var r = node.routing;
+      function f(v) { return v === null || v === undefined ? "—" :
+        (typeof v === "number" ? v.toFixed(3) : v); }
+      function short(id) {
+        if (!id) return "—";
+        var t = nodeById(snap, id);
+        var label = t ? (t.node_type === "user" ? "U " : "A ") +
+          t.content.slice(0, 40) : "";
+        return String(id).slice(0, 8) + (label ? " · " + label : "");
+      }
       html += "<h3>Routing</h3>" + kvTable({
-        action: r.action, target_message_id: r.target_message_id,
-        margin: r.margin, dominated_root_ids: r.dominated_root_ids,
+        action: r.action, confidence: r.confidence, decided_by: r.decided_by,
+        target: short(r.target_message_id), cues: (r.cues || []).join(", "),
+        best_rel: r.best_rel, background: r.background, uncertainty: r.uncertainty,
         reason: r.reason,
       });
+      if (r.llm) {
+        html += "<h3>LLM review</h3>" + kvTable({
+          model: r.llm.model, answer: r.llm.answer, choice: r.llm.choice,
+          agreed: r.llm.agreed, rules_action: r.llm.router_action,
+          rules_target: short(r.llm.router_target), latency_ms: r.llm.latency_ms,
+          options: (r.llm.options || []).map(function (t) {
+            return t ? short(t) : "NEW"; }).join(" | "),
+          error: r.llm.error,
+        });
+      }
+      if (r.gates && r.gates.length) {
+        html += "<h3>Checks</h3><table><tr><th>check</th><th>value</th>" +
+          "<th>threshold</th><th>passed</th><th>slack</th><th>note</th></tr>";
+        r.gates.forEach(function (g) {
+          html += "<tr><td>" + esc(g.name) + "</td><td>" + f(g.value) +
+            "</td><td>" + f(g.threshold) + "</td><td class='" +
+            (g.passed ? "pass'>yes" : "fail'>no") + "</td><td>" + f(g.slack) +
+            "</td><td>" + esc(g.note || "") + "</td></tr>";
+        });
+        html += "</table>";
+      }
+      if (r.threads && r.threads.length) {
+        html += "<h3>Threads</h3><table><tr><th>thread</th><th>best rel</th>" +
+          "<th>prior</th><th>score</th><th>eligible</th></tr>";
+        r.threads.forEach(function (t) {
+          html += "<tr><td>" + esc(short(t.root_id)) + "</td><td>" +
+            f(t.best_rel) + "</td><td>" + f(t.prior) + "</td><td>" +
+            f(t.score) + "</td><td>" + (t.eligible ? "yes" : "no") + "</td></tr>";
+        });
+        html += "</table>";
+      }
       if (r.candidates && r.candidates.length) {
-        html += "<h3>Candidates</h3><table><tr><th>node</th><th>kind</th>" +
-          "<th>bm25</th><th>recency</th><th>s1</th><th>ev</th></tr>";
+        html += "<h3>Candidates</h3><table><tr><th>assistant node</th>" +
+          "<th>rel</th><th>sem</th><th>lex</th><th>matched</th></tr>";
         r.candidates.forEach(function (c) {
-          function f(v) { return v === null || v === undefined ? "—" :
-            (typeof v === "number" ? v.toFixed(3) : v); }
-          html += "<tr><td>" + esc(String(c.node_id).slice(0, 8)) + "</td><td>" +
-            c.kind + "</td><td>" + f(c.bm25) +
-            "</td><td>" + f(c.recency) + "</td><td>" + f(c.s1) + "</td><td>" +
-            c.evidence + "</td></tr>";
+          html += "<tr><td>" + esc(short(c.node_id)) + "</td><td>" +
+            f(c.rel) + "</td><td>" + f(c.sem) + "</td><td>" + f(c.lex) +
+            "</td><td>" + esc((c.matched || []).join(" ")) + "</td></tr>";
         });
         html += "</table>";
       }
@@ -368,12 +431,11 @@ HTML = r"""<!DOCTYPE html>
   function poll() {
     fetchSnapshot(function (snap) {
       if (!snap) return;  // 304: no change
-      var changed = snap.version !== state.version;
+      // The server only sends a body when its ETag changed, so any snapshot
+      // here is new. (The payload is {"schema", "trees"}: there is no
+      // top-level version to compare.)
       state.snap = snap;
-      if (changed || state.version === null) {
-        state.version = snap.version;
-        render();
-      }
+      render();
     });
   }
 

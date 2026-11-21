@@ -1,0 +1,80 @@
+[
+  {
+    "id": "affirm-booking",
+    "note": "assistant asks a confirmation question; the user answers with a bare yes / no",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "I need to book a dentist appointment for next week.",
+       "assistant": "I can help with that. Dr. Patel has openings on Tuesday at 10:00 and Thursday at 15:30. Would you like me to book Tuesday at 10:00?"},
+      {"id": "t2", "gold": "t1", "user": "yes",
+       "assistant": "Done. Your appointment with Dr. Patel is booked for Tuesday at 10:00. Should I send a reminder to your phone the day before?"},
+      {"id": "t3", "gold": "t2", "user": "no thanks",
+       "assistant": "No problem, no reminder will be sent. Your booking reference is DP-4471."}
+    ]
+  },
+  {
+    "id": "affirm-refund",
+    "note": "short affirmations with a few extra words",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "My order #88213 arrived damaged, the mug is cracked.",
+       "assistant": "I'm sorry about that. I can offer a full refund of $18.50 or send a replacement at no cost. Which would you prefer?"},
+      {"id": "t2", "gold": "t1", "user": "the refund please",
+       "assistant": "I've started a refund of $18.50 to your original payment method. It usually takes 3-5 business days. Do you want me to email you the confirmation?"},
+      {"id": "t3", "gold": "t2", "user": "sure, go ahead",
+       "assistant": "The confirmation email is on its way. Is there anything else I can help with?"}
+    ]
+  },
+  {
+    "id": "affirm-after-detour",
+    "note": "the question was asked in another thread; the user detours, then answers it. t4 is ambiguous on purpose: the active reply asks nothing, the question is in thread t1",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "Can you upgrade my plan to the premium tier?",
+       "assistant": "The premium tier costs $29 per month and includes priority support and 1 TB of storage. Shall I upgrade your account now?"},
+      {"id": "t2", "gold": "NEW", "user": "Unrelated: what are your support hours?",
+       "assistant": "Our support team is available Monday to Friday, 8:00 to 20:00 CET."},
+      {"id": "t3", "gold": "t2", "user": "and on weekends?",
+       "assistant": "On weekends we offer email support only, answered within 24 hours."},
+      {"id": "t4", "gold": "t1", "user": "ok, yes, upgrade me",
+       "assistant": "Your account is now on the premium tier. The first charge of $29 will appear on your next invoice."}
+    ]
+  },
+  {
+    "id": "affirm-after-detour-bare",
+    "note": "hard case: a bare 'yes' after a detour. The active reply asks nothing; the only open question is in thread t1. The rules alone cannot know this; it must be TENTATIVE so the LLM can choose",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "Can you renew my car insurance policy?",
+       "assistant": "Your policy renews at 612 EUR per year, with the same cover as last year. Do you want me to renew it today?"},
+      {"id": "t2", "gold": "NEW", "user": "Btw, what documents do I need to register a new address?",
+       "assistant": "Bring your ID card and a rental contract or a letter from your landlord to the town hall."},
+      {"id": "t3", "gold": "t1", "user": "yes",
+       "assistant": "Your car insurance policy is renewed for another year at 612 EUR."}
+    ]
+  },
+  {
+    "id": "affirm-no-question",
+    "note": "a bare acknowledgement after an answer that asked nothing: continue the active branch",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "What's the baggage allowance on my flight to Lisbon?",
+       "assistant": "Your economy ticket includes one cabin bag up to 8 kg and one checked bag up to 23 kg."},
+      {"id": "t2", "gold": "t1", "user": "ok",
+       "assistant": "Great. Let me know if you need anything else for your trip."},
+      {"id": "t3", "gold": "t2", "user": "can I add a second checked bag?",
+       "assistant": "Yes, a second checked bag of up to 23 kg costs 45 EUR if you add it online before check-in."}
+    ]
+  },
+  {
+    "id": "affirm-choice",
+    "note": "the assistant offers options; the user picks one with a short reply",
+    "turns": [
+      {"id": "t1", "gold": "NEW", "user": "Help me pick a laptop for video editing under $2000.",
+       "assistant": "Two good options: the ProBook 16 with 32 GB RAM for $1,899, or the Vega X14 with an RTX 4070 for $1,749. Do you prefer battery life or GPU power?"},
+      {"id": "t2", "gold": "t1", "user": "gpu power",
+       "assistant": "Then the Vega X14 is the better fit: its RTX 4070 speeds up rendering and effects. Would you like me to compare its display with the ProBook's?"},
+      {"id": "t3", "gold": "t2", "user": "yes please",
+       "assistant": "The Vega X14 has a 14-inch 2.8K OLED panel; the ProBook 16 has a 16-inch 4K IPS panel with better colour accuracy for grading."},
+      {"id": "t4", "gold": "NEW", "user": "Different question: how do I reset my router password?",
+       "assistant": "Hold the reset button on the back of the router for 10 seconds, then log in with the default password printed on its label."},
+      {"id": "t5", "gold": "t4", "user": "got it, thanks",
+       "assistant": "You're welcome. Anything else?"}
+    ]
+  }
+]

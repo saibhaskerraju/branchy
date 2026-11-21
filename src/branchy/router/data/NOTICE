@@ -1,0 +1,24 @@
+branchy router data — third-party material
+
+embeddings.i8, tokenizer.json
+  Derived from minishlab/potion-base-8M (https://huggingface.co/minishlab/potion-base-8M),
+  a Model2Vec static embedding model by MinishLab, licensed under the MIT License.
+  The float32 weights were quantised to int8. The MIT License requires this notice:
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+  this software and associated documentation files (the "Software"), to deal in
+  the Software without restriction, including without limitation the rights to
+  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+  the Software, and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions: The above copyright notice and this
+  permission notice shall be included in all copies or substantial portions of
+  the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+background.i32, idf.json
+  Derived statistics (embedding vectors and per-term document frequencies; no
+  prompt text) computed from:
+  - allenai/WildChat-1M (https://huggingface.co/datasets/allenai/WildChat-1M),
+    Allen Institute for AI, licensed under the Open Data Commons Attribution
+    License (ODC-BY) v1.0.
+  - OpenAssistant/oasst2 (https://huggingface.co/datasets/OpenAssistant/oasst2),
+    OpenAssistant / LAION, licensed under the Apache License 2.0.

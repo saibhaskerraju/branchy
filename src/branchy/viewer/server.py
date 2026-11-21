@@ -71,12 +71,13 @@ class TreeViewer:
         host: str = "127.0.0.1",
         port: int = 8787,
         refresh_seconds: int = 2,
+        version_provider: Optional[Callable[[], int]] = None,
     ) -> None:
         self.snapshot_provider = snapshot_provider
         self.host = host
         self.port = port
         self.refresh_seconds = refresh_seconds
-        self._core = ViewerCore(snapshot_provider, refresh_seconds)
+        self._core = ViewerCore(snapshot_provider, refresh_seconds, version_provider)
         self._server: Optional[ThreadingHTTPServer] = None
         self._thread: Optional[threading.Thread] = None
 

@@ -17,6 +17,7 @@ class ConversationTree:
         self.active_root_id: Optional[str] = None
         self.version: int = 0
         self._lock = threading.RLock()
+        self._terms_cache: dict[str, list[str]] = {}  # message_id -> terms
 
     def add_message(
         self,
@@ -74,27 +75,6 @@ class ConversationTree:
             current_id = node.parent_message_id
         return message_id
 
-    def leaf_assistants(self) -> list[MessageNode]:
-        """Assistant nodes with no children, ordered by created_seq."""
-        return sorted(
-            (
-                m
-                for m in self.messages.values()
-                if m.node_type == "assistant" and not m.child_message_ids
-            ),
-            key=lambda m: m.created_seq,
-        )
-
-    def root_assistants(self) -> list[MessageNode]:
-        """The assistant child of each root user node, ordered by created_seq."""
-        assistants = []
-        for root in self.get_root_messages():
-            for child_id in root.child_message_ids:
-                child = self.messages[child_id]
-                if child.node_type == "assistant":
-                    assistants.append(child)
-        return sorted(assistants, key=lambda m: m.created_seq)
-
     def thread_nodes(self, root_id: str) -> list[MessageNode]:
         """All nodes in the tower rooted at root_id, ordered by created_seq."""
         nodes = [
@@ -110,13 +90,52 @@ class ConversationTree:
             user_content = self.messages[parent_id].content
         return user_content, assistant_node.content
 
+    def _nodes_by_root(self) -> dict[str, list[MessageNode]]:
+        """Every topic's messages by created_seq, from one pass over the tree
+        (parents are always created before their children)."""
+        root_of: dict[str, str] = {}
+        by_root: dict[str, list[MessageNode]] = {}
+        for n in sorted(self.messages.values(), key=lambda m: m.created_seq):
+            p = n.parent_message_id
+            if p is None:
+                r = n.message_id
+            else:
+                r = root_of.get(p) or self.root_of(p)
+            root_of[n.message_id] = r
+            by_root.setdefault(r, []).append(n)
+        return by_root
+
+    def _terms(self, node: MessageNode) -> list[str]:
+        """A message's stemmed terms; cached, message content never changes."""
+        cached = self._terms_cache.get(node.message_id)
+        if cached is None:
+            from .router.text import terms
+
+            cached = self._terms_cache[node.message_id] = terms(node.content)
+        return cached
+
     def refresh_stickers(self) -> None:
-        """Refresh every tower's sticker text."""
-        from .router.sticker import build_sticker
+        """Refresh every tower's sticker text. Same result as build_sticker for
+        each root, but every topic's words are read once, not once per other
+        topic."""
+        from .router.sticker import sticker_text
 
         with self._lock:
-            for root in self.get_root_messages():
-                text = build_sticker(self, root.message_id)
+            by_root = self._nodes_by_root()
+            tokens = {
+                r: [t for n in nodes for t in self._terms(n)]
+                for r, nodes in by_root.items()
+            }
+            roots = self.get_root_messages()
+            topic_ids = {r.message_id for r in roots} | self.stickers.keys()
+            for root in roots:
+                rid = root.message_id
+                text = sticker_text(
+                    root,
+                    by_root.get(rid, []),
+                    tokens.get(rid, []),
+                    [tokens.get(r, []) for r in topic_ids if r != rid],
+                )
                 existing = self.stickers.get(root.message_id)
                 last_used = existing.last_used_seq if existing else 0
                 if root.message_id == self.active_root_id:

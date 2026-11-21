@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Optional
 
 from .core import ViewerCore
 
@@ -16,6 +16,7 @@ _STATUS_TEXT = {
 def wsgi_app(
     snapshot_provider: Callable[[], dict],
     refresh_seconds: int = 2,
+    version_provider: Optional[Callable[[], int]] = None,
 ):
     """Plain WSGI app serving the viewer."""
     from .server import _disabled
@@ -33,7 +34,7 @@ def wsgi_app(
 
         return disabled_app
 
-    core = ViewerCore(snapshot_provider, refresh_seconds)
+    core = ViewerCore(snapshot_provider, refresh_seconds, version_provider)
 
     def app(environ, start_response):
         path = environ.get("PATH_INFO", "/") or "/"

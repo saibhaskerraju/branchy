@@ -26,6 +26,7 @@ def main() -> None:
         host=args.host,
         port=args.port,
         refresh_seconds=args.refresh,
+        version_provider=store.global_version,
     )
     viewer.start()
     print(f"branchy viewer: {viewer.url} (db: {args.db}) — Ctrl+C to stop")

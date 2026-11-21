@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from typing import Callable, Optional
 
 from .page import HTML
@@ -112,8 +113,14 @@ class ViewerCore:
         self,
         snapshot_provider: Callable[[], dict],
         refresh_seconds: int = 2,
+        version_provider: Optional[Callable[[], int]] = None,
     ) -> None:
+        """version_provider: a cheap read of the summed tree versions (the
+        same number the ETag is built from). With it, an unchanged tree is
+        answered with 304 without loading the snapshot."""
         self.snapshot_provider = snapshot_provider
+        self.version_provider = version_provider
+        self._instance = uuid.uuid4().hex[:12]
         self.page = HTML.replace(_REFRESH_PLACEHOLDER, str(refresh_seconds)).encode()
 
     def handle(
@@ -137,11 +144,19 @@ class ViewerCore:
                 body_only_head,
             )
         if path in ("/api/tree", "/api/trees"):
+            if if_none_match and self.version_provider is not None:
+                # check before loading: the poll is almost always "no change"
+                etag = f'"{self._instance}-{self.version_provider()}"'
+                if if_none_match == etag:
+                    return 304, {"cache-control": "no-store", "etag": etag}, b""
             snapshot = _normalise(self.snapshot_provider())
             global_version = sum(
                 t.get("version", 0) for t in snapshot["trees"]
             )
-            etag = f'"{global_version}"'
+            # instance token: versions restart at 0 when the process restarts
+            # (or the database is reset), so a bare version could falsely
+            # match an old tab's ETag and leave it stale with a 304.
+            etag = f'"{self._instance}-{global_version}"'
             headers = {
                 "content-type": "application/json",
                 "cache-control": "no-store",

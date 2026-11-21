@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Optional
 
 from .core import ViewerCore
 
@@ -8,6 +8,7 @@ from .core import ViewerCore
 def asgi_app(
     snapshot_provider: Callable[[], dict],
     refresh_seconds: int = 2,
+    version_provider: Optional[Callable[[], int]] = None,
 ):
     """Pure ASGI 3 app serving the viewer (no framework imports)."""
     from .server import _disabled
@@ -38,7 +39,7 @@ def asgi_app(
 
         return disabled_app
 
-    core = ViewerCore(snapshot_provider, refresh_seconds)
+    core = ViewerCore(snapshot_provider, refresh_seconds, version_provider)
 
     async def app(scope, receive, send):
         if scope["type"] == "lifespan":

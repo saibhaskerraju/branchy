@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-from .llm import LiteLLMResponder, Responder
+from .llm import LiteLLMClient
+from . import display
 from .store import SQLiteStore, StoreConflict, TreeStore
 
 logger = logging.getLogger("branchy")
@@ -15,7 +16,11 @@ DEFAULT_VIEWER_HOST = "127.0.0.1"
 DEFAULT_VIEWER_PORT = 8787
 DEFAULT_VIEWER_REFRESH_SECONDS = 2
 from .router import RouterConfig, RoutingDecision, ThreadRouter
+from .router.judge import RoutingJudge
 from .tree import ConversationTree
+
+
+JUDGE_TIMEOUT_S = 10.0  # a slower review keeps the rules' decision
 
 
 class BranchingChat:
@@ -24,10 +29,9 @@ class BranchingChat:
     def __init__(
         self,
         *,
-        model: Optional[str] = None,
+        model: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
-        responder: Optional[Responder] = None,
         router_config: Optional[RouterConfig] = None,
         system_prompt: Optional[str] = None,
         store: Union[TreeStore, str, os.PathLike, None, Literal["default"]] = "default",
@@ -40,27 +44,20 @@ class BranchingChat:
     ) -> None:
         """Create a chat instance.
 
-        responder: any (history, user_message) -> reply callable where history
-        is a list of {"role", "content"} turns. When not given, `model` is
-        required and a LiteLLMResponder is built (provider prefixes and
-        api_base follow litellm's rules).
+        model: any litellm model string (provider prefixes and api_base follow
+        litellm's rules). It writes the replies, and it reviews routing
+        decisions the rules mark TENTATIVE (ADR 0004); FIRM decisions never
+        call it.
         """
 
-        if responder is not None:
-            self.responder = responder
-        else:
-            if model is None:
-                raise ValueError(
-                    "model is required when no responder callable is given"
-                )
-            kwargs = {}
-            if api_base is not None:
-                kwargs["api_base"] = api_base
-            if system_prompt is not None:
-                kwargs["system_prompt"] = system_prompt
-            self.responder = LiteLLMResponder(
-                model=model, api_key=api_key, **kwargs
-            )
+        if not model:
+            raise ValueError("model is required")
+        kwargs = {}
+        if system_prompt is not None:
+            kwargs["system_prompt"] = system_prompt
+        self.llm = LiteLLMClient(
+            model=model, api_key=api_key, api_base=api_base, **kwargs
+        )
 
         if isinstance(store, TreeStore):
             self.store: Optional[TreeStore] = store
@@ -88,7 +85,13 @@ class BranchingChat:
             self.tree = ConversationTree(tree_id=tree_id)
 
         self.router = ThreadRouter(config=router_config or RouterConfig())
+        # reviews every TENTATIVE decision, never a FIRM one (ADR 0004)
+        self.routing_judge = RoutingJudge(
+            lambda messages: self.llm.complete(messages, timeout=JUDGE_TIMEOUT_S),
+            model_name=model,
+        )
         self.last_decision: Optional[RoutingDecision] = None
+        self.last_message_id: Optional[str] = None
 
         self._viewer = None
         self._viewer_host = viewer_host
@@ -102,6 +105,12 @@ class BranchingChat:
         if self.store is not None:
             return self.store.snapshot_all
         return self.tree.snapshot
+
+    def _version_provider(self):
+        """Cheap version read for the viewer's 'anything new?' check."""
+        if self.store is not None:
+            return self.store.global_version
+        return lambda: self.tree.version
 
     def start_viewer(self) -> None:
         """Start the standalone HTML tree viewer (idempotent).
@@ -131,6 +140,7 @@ class BranchingChat:
 
         self._viewer = TreeViewer(
             self._snapshot_provider(),
+            version_provider=self._version_provider(),
             host=self._viewer_host,
             port=self._viewer_port,
             refresh_seconds=self._viewer_refresh,
@@ -153,11 +163,13 @@ class BranchingChat:
         if kind == "asgi":
             from .viewer import asgi_app
 
-            app = asgi_app(self._snapshot_provider(), self._viewer_refresh)
+            app = asgi_app(self._snapshot_provider(), self._viewer_refresh,
+                           self._version_provider())
         elif kind == "wsgi":
             from .viewer import wsgi_app
 
-            app = wsgi_app(self._snapshot_provider(), self._viewer_refresh)
+            app = wsgi_app(self._snapshot_provider(), self._viewer_refresh,
+                           self._version_provider())
         else:
             raise ValueError(f"unknown viewer app kind: {kind!r}")
         logger.info(
@@ -189,11 +201,20 @@ class BranchingChat:
         self,
         user_message: str,
         assistant_message: Optional[str] = None,
+        *,
+        reply_to: Optional[str] = None,
+        new_topic: bool = False,
     ) -> str:
-        """Add a user message, route it in the tree, and return the new message id."""
+        """Route a user message, generate (or take) the reply, store both, and
+        return the new user message id.
+
+        reply_to: place the message under this assistant message id (explicit,
+        no routing). new_topic: start a new topic (explicit). Otherwise the
+        router decides; see chat.last_decision for why.
+        """
 
         self._sync()
-        decision = self.router.route(self.tree, user_message)
+        decision = self._route(user_message, reply_to, new_topic)
 
         if assistant_message is None:
             history: list[dict] = []
@@ -202,13 +223,28 @@ class BranchingChat:
                     history.append(
                         {"role": node.node_type, "content": node.content}
                     )
-            assistant_message = self.responder(history, user_message)
+            assistant_message = self.llm.reply(history, user_message)
 
         message_id = self._add_and_persist(
-            user_message, assistant_message, decision
+            user_message, assistant_message, decision, reply_to, new_topic
         )
-        self.last_decision = decision
         return message_id
+
+    def __enter__(self) -> "BranchingChat":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def _route(
+        self, user_message: str, reply_to: Optional[str], new_topic: bool
+    ) -> RoutingDecision:
+        decision = self.router.route(
+            self.tree, user_message, reply_to=reply_to, new_topic=new_topic
+        )
+        return self.routing_judge.review(
+            self.tree, user_message, decision, self.router
+        )
 
     def _sync(self) -> None:
         """Reload the in-memory tree when the store moved ahead (other
@@ -225,70 +261,83 @@ class BranchingChat:
         user_message: str,
         assistant_message: str,
         decision: RoutingDecision,
+        reply_to: Optional[str] = None,
+        new_topic: bool = False,
     ) -> str:
         expected = self.tree.version
-        message_id = self.tree.add_message(
-            user=user_message,
-            assistant=assistant_message,
-            parent_message_id=decision.target_message_id,
-            tentative=decision.action == "ATTACH_TENTATIVE",
-            routing=decision.model_dump(),
-        )
-        self.tree.refresh_stickers()
+        message_id = self._apply(user_message, assistant_message, decision)
         if self.store is None:
             return message_id
-        user_node = self.tree.messages[message_id]
-        assistant_node = self.tree.messages[user_node.child_message_ids[0]]
         try:
-            self.store.save_turn(
-                self.tree.tree_id,
-                {
-                    "seq": self.tree.seq,
-                    "active_root_id": self.tree.active_root_id,
-                },
-                [user_node.model_dump(), assistant_node.model_dump()],
-                [s.model_dump() for s in self.tree.stickers.values()],
-                expected_version=expected,
-            )
+            self._save(message_id, expected)
         except StoreConflict:
             # someone else wrote first: reload, re-route, reuse the reply,
             # retry once
             snap = self.store.load(self.tree.tree_id)
             if snap:
                 self.tree = ConversationTree.from_dict(snap)
-            decision = self.router.route(self.tree, user_message)
-            self.last_decision = decision
+            decision = self._route(user_message, reply_to, new_topic)
             expected = self.tree.version
-            message_id = self.tree.add_message(
-                user=user_message,
-                assistant=assistant_message,
-                parent_message_id=decision.target_message_id,
-                tentative=decision.action == "ATTACH_TENTATIVE",
-                routing=decision.model_dump(),
-            )
-            self.tree.refresh_stickers()
-            user_node = self.tree.messages[message_id]
-            assistant_node = self.tree.messages[user_node.child_message_ids[0]]
-            self.store.save_turn(
-                self.tree.tree_id,
-                {
-                    "seq": self.tree.seq,
-                    "active_root_id": self.tree.active_root_id,
-                },
-                [user_node.model_dump(), assistant_node.model_dump()],
-                [s.model_dump() for s in self.tree.stickers.values()],
-                expected_version=expected,
-            )
+            message_id = self._apply(user_message, assistant_message, decision)
+            self._save(message_id, expected)
         return message_id
 
-    def show_tree(self) -> str:
-        """Render the current user-message tree."""
+    def _apply(
+        self, user_message: str, assistant_message: str, decision: RoutingDecision
+    ) -> str:
+        message_id = self.tree.add_message(
+            user=user_message,
+            assistant=assistant_message,
+            parent_message_id=decision.target_message_id,
+            tentative=decision.tentative,
+            routing=decision.model_dump(),
+        )
+        self.tree.refresh_stickers()
+        self.last_decision = decision
+        self.last_message_id = message_id
+        return message_id
 
-        tree_output = self.tree.render_tree()
-        return tree_output
+    def _save(self, message_id: str, expected: int) -> None:
+        user_node = self.tree.messages[message_id]
+        assistant_node = self.tree.messages[user_node.child_message_ids[0]]
+        self.store.save_turn(
+            self.tree.tree_id,
+            {"seq": self.tree.seq, "active_root_id": self.tree.active_root_id},
+            [user_node.model_dump(), assistant_node.model_dump()],
+            [st.model_dump() for st in self.tree.stickers.values()],
+            expected_version=expected,
+        )
+
+    # ---- human-readable views (labels: U<n> = n-th user message, A<n> = its reply)
+
+    @property
+    def last_reply(self) -> Optional[str]:
+        """The assistant reply to the last added message."""
+        if self.last_message_id is None:
+            return None
+        node = self.tree.messages[self.last_message_id]
+        return self.tree.messages[node.child_message_ids[0]].content
+
+    def show_tree(self) -> str:
+        """The whole tree with U<n>/A<n> labels, placement marks and the active leaf."""
+        return display.render_tree(self.tree)
 
     def show_subtree(self, message_id: str) -> str:
-        """Render a subtree starting from a given message_id and all its child branches."""
+        """The subtree under one message."""
+        return display.render_tree(self.tree, root_id=message_id)
 
-        tree_output = self.tree.render_subtree(message_id)
-        return tree_output
+    def describe(self, decision: Optional[RoutingDecision] = None) -> str:
+        """One line for a decision (default: the last), e.g. '↳ continue under A1'."""
+        decision = decision or self.last_decision
+        if decision is None:
+            return "no routing yet"
+        placed = self.last_message_id if decision is self.last_decision else None
+        return display.describe(self.tree, decision, placed)
+
+    def explain(self, decision: Optional[RoutingDecision] = None) -> str:
+        """A decision in full (default: the last): cues, checks and scores."""
+        return display.explain(self.tree, decision or self.last_decision)
+
+    def message_id(self, label: str) -> Optional[str]:
+        """The message id for a label like 'A3', or None."""
+        return display.message_id(self.tree, label)
