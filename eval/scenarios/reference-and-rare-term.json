@@ -1,0 +1,110 @@
+[
+  {
+    "id": "ref-vs-generic-intro",
+    "note": "'that' refers to the answer just given; a generic capabilities answer must not steal it. Later a rare name returns to a non-active thread.",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "hi, what can you help me with?",
+        "assistant": "I can help with writing, coding, debugging, math, research, planning and explaining technical topics. Ask me anything."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "explain kubernetes pods",
+        "assistant": "A pod is the smallest deployable unit in Kubernetes. It wraps one or more containers that share a network namespace and storage volumes, and the scheduler places the whole pod on a node."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "can I run redis in that?",
+        "assistant": "Yes. Run Redis as a container in a pod, usually managed by a StatefulSet with a persistent volume so data survives restarts."
+      },
+      {
+        "id": "t4",
+        "gold": "NEW",
+        "user": "what's a good name for a golden retriever puppy",
+        "assistant": "Popular picks: Sunny, Maple, Biscuit, Honey, Cooper or Murphy."
+      },
+      {
+        "id": "t5",
+        "gold": "t3",
+        "user": "does redis support pub sub messaging",
+        "assistant": "Yes. PUBLISH sends to a channel and SUBSCRIBE listens; messages are not stored, so offline subscribers miss them. Use Redis Streams if you need persistence."
+      }
+    ]
+  },
+  {
+    "id": "rare-tool-name-returns",
+    "note": "a specific tool name (alembic) brings the user back to an older thread after an unrelated one",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I create a migration with alembic?",
+        "assistant": "Run alembic revision --autogenerate -m \"add users\", review the generated script in versions/, then apply it with alembic upgrade head."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "Suggest a weekend trip near Lisbon",
+        "assistant": "Sintra: palaces, forest trails and Cabo da Roca nearby. Take the train from Rossio station; it is about 40 minutes."
+      },
+      {
+        "id": "t3",
+        "gold": "t1",
+        "user": "can alembic handle multiple databases",
+        "assistant": "Yes. Use the multidb template (alembic init --template multidb) which runs each migration against every configured engine."
+      }
+    ]
+  },
+  {
+    "id": "ref-stays-when-rival-is-weak",
+    "note": "control: a pronoun follow-up stays on the active thread; the other thread is only loosely related",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How should I structure a Python project?",
+        "assistant": "Use a src layout: src/yourpkg with an __init__.py, tests/ beside it, and pyproject.toml at the root for metadata and dependencies."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "What is a good way to learn touch typing?",
+        "assistant": "Practise 15 minutes a day on a typing site, keep your fingers on the home row and do not look at the keyboard; accuracy first, speed later."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "how long does that usually take?",
+        "assistant": "Most people reach their old speed in 3 to 6 weeks and pass it after 2 to 3 months."
+      }
+    ]
+  },
+  {
+    "id": "shared-common-word-new-topic",
+    "note": "control: a new topic that shares only a common word (python) with an old thread must stay NEW",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I sort a list of dicts by a key in Python?",
+        "assistant": "Use sorted(items, key=lambda d: d[\"name\"]), or operator.itemgetter(\"name\") for speed."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "Which pet snake is best for a beginner?",
+        "assistant": "A corn snake or a ball python: both are docile, stay a manageable size and eat frozen mice."
+      },
+      {
+        "id": "t3",
+        "gold": "NEW",
+        "user": "What is the best way to learn Python for data analysis?",
+        "assistant": "Learn the basics, then pandas and matplotlib through small projects on real datasets."
+      }
+    ]
+  }
+]

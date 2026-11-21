@@ -1,0 +1,28 @@
+branchy-chat
+Copyright 2026 Bhasker Raju
+
+This product includes software developed by Bhasker Raju
+(https://github.com/saibhaskerraju/branchy).
+
+Licensed under the Apache License, Version 2.0 (see LICENSE). Under section 4(d)
+of that license, any redistribution of this work or of a derivative work must
+include a readable copy of the attribution notices in this NOTICE file.
+
+-------------------------------------------------------------------------------
+Third-party material bundled in src/branchy/router/data/
+(full notices, including the MIT License text: src/branchy/router/data/NOTICE)
+-------------------------------------------------------------------------------
+
+embeddings.i8, tokenizer.json
+  Derived from potion-base-8M by MinishLab, licensed under the MIT License.
+  https://huggingface.co/minishlab/potion-base-8M
+
+background.i32, idf.json
+  Derived statistics (embedding vectors and per-term document frequencies; no
+  prompt text) computed from:
+  - WildChat-1M, Allen Institute for AI, licensed under the Open Data Commons
+    Attribution License (ODC-BY) v1.0.
+    https://huggingface.co/datasets/allenai/WildChat-1M
+  - OpenAssistant Conversations (oasst2), OpenAssistant / LAION, licensed under
+    the Apache License 2.0.
+    https://huggingface.co/datasets/OpenAssistant/oasst2

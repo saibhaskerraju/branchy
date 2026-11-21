@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="640" viewBox="0 0 940 640" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img">
+<title>Turn 3: NEW</title>
+<desc>Unrelated: can you suggest a 3-day beginner workout plan? An unrelated question starts a second topic with an empty history.</desc>
+<rect x="0.5" y="0.5" width="939" height="639" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+<text x="24" y="38" font-size="18" font-weight="700" fill="#1f2328">Turn 3</text>
+<rect x="100" y="21" width="41" height="24" rx="12" fill="#fff1e5"/>
+<text x="120.5" y="38" font-size="12" font-weight="700" text-anchor="middle" fill="#b54708">NEW</text>
+<text x="157" y="38" font-size="15" fill="#1f2328">“Unrelated: can you suggest a 3-day beginner workout plan?”</text>
+<text x="24" y="64" font-size="13" fill="#59636e">An unrelated question starts a second topic with an empty history.</text>
+<rect x="414" y="92" width="112" height="26" rx="13" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="470" y="109" font-size="12" text-anchor="middle" fill="#59636e">conversation</text>
+<path d="M470 118 C470 140.0 165 140.0 165 162" fill="none" stroke="#d0d7de" stroke-width="1.5"/>
+<path d="M470 118 C470 140.0 775 140.0 775 162" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-dasharray="5 4"/>
+<path d="M165 220 C165 228.0 165 228.0 165 236" fill="none" stroke="#d0d7de" stroke-width="1.5"/>
+<path d="M165 262 C165 270.0 165 270.0 165 278" fill="none" stroke="#d0d7de" stroke-width="1.5"/>
+<path d="M165 336 C165 344.0 165 344.0 165 352" fill="none" stroke="#d0d7de" stroke-width="1.5"/>
+<path d="M775 220 C775 228.0 775 228.0 775 236" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-dasharray="5 4"/>
+<rect x="25.0" y="162" width="280" height="58" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="37.0" y="182" font-size="12" font-weight="700" fill="#6e7781">U1</text>
+<text x="65.0" y="182" font-size="13" fill="#6e7781">How do I deploy my FastAPI app</text>
+<text x="65.0" y="197" font-size="13" fill="#6e7781">with Docker?</text>
+<rect x="133.0" y="236" width="64" height="26" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="165" y="253" font-size="12" font-weight="700" text-anchor="middle" fill="#6e7781">A1</text>
+<rect x="25.0" y="278" width="280" height="58" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="37.0" y="298" font-size="12" font-weight="700" fill="#6e7781">U2</text>
+<text x="65.0" y="298" font-size="13" fill="#6e7781">How do I add a healthcheck to the</text>
+<text x="65.0" y="313" font-size="13" fill="#6e7781">container?</text>
+<rect x="133.0" y="352" width="64" height="26" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="165" y="369" font-size="12" font-weight="700" text-anchor="middle" fill="#6e7781">A2</text>
+<rect x="635.0" y="162" width="280" height="58" rx="8" fill="#fff4e5" stroke="#ea580c" stroke-width="2.5"/>
+<text x="647.0" y="182" font-size="12" font-weight="700" fill="#1f2328">U3</text>
+<text x="675.0" y="182" font-size="13" fill="#1f2328">Unrelated: can you suggest a</text>
+<text x="675.0" y="197" font-size="13" fill="#1f2328">3-day beginner workout plan?</text>
+<rect x="743.0" y="236" width="64" height="26" rx="8" fill="#fff4e5" stroke="#ea580c" stroke-width="2.5"/>
+<text x="775" y="253" font-size="12" font-weight="700" text-anchor="middle" fill="#1f2328">A3</text>
+<text x="24" y="568" font-size="14" font-weight="600" fill="#1f2328">History sent to the LLM: none (a new topic starts empty).</text>
+<text x="24" y="588" font-size="13" fill="#59636e">A flat transcript would send 4 messages (4,272 characters).</text>
+<rect x="24" y="605" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<text x="44" y="616" font-size="12" fill="#59636e">sent to the LLM as history</text>
+<rect x="236" y="605" width="14" height="14" rx="3" fill="#fff4e5" stroke="#ea580c" stroke-width="1.5"/>
+<text x="256" y="616" font-size="12" fill="#59636e">new message and its reply</text>
+<rect x="441" y="605" width="14" height="14" rx="3" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+<text x="461" y="616" font-size="12" fill="#59636e">stored, not sent</text>
+</svg>

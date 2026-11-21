@@ -12,6 +12,9 @@
 	"service": "branchy",
 	"shutdownAction": "stopCompose",
 	"workspaceFolder": "/workspace",
+	// Dev-only tools that are not project dependencies (not in pyproject.toml).
+	// arxiv-mcp-server is used by Claude Code via .mcp.json.
+	"postCreateCommand": "uv tool install arxiv-mcp-server",
 	"postStartCommand": "make",
 	"customizations": {
 		"vscode": {
@@ -24,7 +27,8 @@
 			"KevinRose.vsc-python-indent",
 			"njpwerner.autodocstring",
 			"LittleFoxTeam.vscode-python-test-adapter",
-			"formulahendry.code-runner"
+			"formulahendry.code-runner",
+			"Anthropic.claude-code"
 		],
 		"settings": {
 			"python.formatting.provider": "none", // Disable default python formater

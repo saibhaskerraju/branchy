@@ -1,0 +1,344 @@
+[
+  {
+    "id": "docker-tomato-return",
+    "note": "the design walkthrough: continue, unrelated topic sharing a word, return with fork, switch back",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I deploy a Flask app with Docker?",
+        "assistant": "Write a Dockerfile using the python:3.12-slim base image, install the requirements, run gunicorn. Then docker build and docker run the container."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "How do I add a healthcheck to the container?",
+        "assistant": "Add a HEALTHCHECK line to the Dockerfile that curls the /health endpoint every 30 seconds."
+      },
+      {
+        "id": "t3",
+        "gold": "NEW",
+        "user": "What container size should I use for growing tomatoes on a balcony?",
+        "assistant": "Use a 20-litre pot with drainage holes for each tomato plant, in full sun."
+      },
+      {
+        "id": "t4",
+        "gold": "t3",
+        "user": "How often should I water them?",
+        "assistant": "Daily in hot weather; check that the top inch of soil is dry first."
+      },
+      {
+        "id": "t5",
+        "gold": "t1",
+        "user": "Going back to the Dockerfile basics, should the base image be alpine instead of slim?",
+        "assistant": "Alpine is smaller but uses musl, so many Python wheels must compile from source; slim is usually safer."
+      },
+      {
+        "id": "t6",
+        "gold": "t2",
+        "user": "Going back to the healthcheck, what timeout should the curl use?",
+        "assistant": "A 3 second timeout with 3 retries is a common default."
+      }
+    ]
+  },
+  {
+    "id": "postgres-pasta-interleave",
+    "note": "two topics interleaved turn by turn; references by pronoun",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I build an index in Postgres?",
+        "assistant": "Use CREATE INDEX idx ON table(col); it is a btree by default."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "Give me a vegan pasta sauce recipe",
+        "assistant": "Creamy tomato-basil: onion, garlic, tomatoes, cashews, basil."
+      },
+      {
+        "id": "t3",
+        "gold": "t1",
+        "user": "What if I need it to not lock the table?",
+        "assistant": "Use CREATE INDEX CONCURRENTLY; it cannot run inside a transaction."
+      },
+      {
+        "id": "t4",
+        "gold": "t2",
+        "user": "I don't like onion, can you change the sauce?",
+        "assistant": "No-onion version: extra garlic, fennel seed, tomatoes, cashews."
+      },
+      {
+        "id": "t5",
+        "gold": "t4",
+        "user": "How much salt should go in the sauce?",
+        "assistant": "Half a teaspoon when adding the tomatoes; adjust after simmering."
+      },
+      {
+        "id": "t6",
+        "gold": "t3",
+        "user": "Can the concurrent index build run inside a migration transaction?",
+        "assistant": "No - CONCURRENTLY cannot run in a transaction block; run it outside the migration."
+      }
+    ]
+  },
+  {
+    "id": "index-fund-trap",
+    "note": "a shared word ('index') across unrelated topics",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I build an index in Postgres?",
+        "assistant": "Use CREATE INDEX on the column you filter by; btree is the default type."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "What is a good index fund for retirement savings?",
+        "assistant": "A low-cost total stock market index fund with a small expense ratio is a common choice."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "Is the expense ratio really that important?",
+        "assistant": "Yes: over 30 years a 1% fee can cost about a quarter of your final balance."
+      },
+      {
+        "id": "t4",
+        "gold": "t1",
+        "user": "Back to Postgres: does creating the index lock the table?",
+        "assistant": "A plain CREATE INDEX blocks writes; use CREATE INDEX CONCURRENTLY to avoid that."
+      }
+    ]
+  },
+  {
+    "id": "rome-trip-refinement",
+    "note": "instruction refinement stays a continuation; an explicit return forks",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "Plan a 3-day trip to Rome for me",
+        "assistant": "Day 1: Colosseum and Forum. Day 2: Vatican Museums and St Peter's. Day 3: Trastevere and the Pantheon."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "Make day 2 less museum-heavy",
+        "assistant": "Day 2: St Peter's in the morning, then a walk along the Tiber and Villa Borghese gardens."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "What are good restaurants near the Colosseum?",
+        "assistant": "Try La Taverna dei Fori Imperiali or Li Rioni for pizza."
+      },
+      {
+        "id": "t4",
+        "gold": "t1",
+        "user": "Going back to the original plan, could we add a day trip to Florence?",
+        "assistant": "Yes: make it day 4 by train, 1.5 hours each way, with the Duomo and Uffizi."
+      }
+    ]
+  },
+  {
+    "id": "sorting-then-capital",
+    "note": "a bare fragment after a topic switch",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I sort a list of names alphabetically in Python?",
+        "assistant": "Use sorted(names) or names.sort(); both sort strings alphabetically."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "Now do it in descending order",
+        "assistant": "Use sorted(names, reverse=True)."
+      },
+      {
+        "id": "t3",
+        "gold": "NEW",
+        "user": "What is the capital of Australia?",
+        "assistant": "Canberra."
+      },
+      {
+        "id": "t4",
+        "gold": "t2",
+        "user": "And case-insensitive sorting of the names?",
+        "assistant": "Use sorted(names, key=str.lower, reverse=True)."
+      }
+    ]
+  },
+  {
+    "id": "sourdough",
+    "note": "continuations that share meaning more than words",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I keep a sourdough starter alive?",
+        "assistant": "Feed it equal weights of flour and water daily and keep it at room temperature."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "How long should the dough proof before baking the bread?",
+        "assistant": "Bulk fermentation takes 4 to 6 hours at room temperature, then shape and proof overnight in the fridge."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "Can I use whole wheat flour for the loaf?",
+        "assistant": "Yes, up to about half; add a little more water because whole wheat absorbs more."
+      },
+      {
+        "id": "t4",
+        "gold": "t3",
+        "user": "What oven temperature should I bake it at?",
+        "assistant": "Preheat to 250C with a Dutch oven, bake 20 minutes covered, then 20 uncovered at 230C."
+      }
+    ]
+  },
+  {
+    "id": "resume-cover-letter",
+    "note": "two related documents; returning to the first",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "Help me write a resume for a data analyst role",
+        "assistant": "Resume outline: summary, skills (SQL, Python, Tableau), experience with measurable results, education."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "Write a cover letter for the same role",
+        "assistant": "Dear Hiring Manager, I am excited to apply for the Data Analyst position..."
+      },
+      {
+        "id": "t3",
+        "gold": "t1",
+        "user": "Going back to the resume, shorten it to one page",
+        "assistant": "One-page resume: 3-line summary, 6 skills, the two most recent roles with 3 bullets each."
+      }
+    ]
+  },
+  {
+    "id": "recursion-vaccines",
+    "note": "anaphora continuation, an announced topic switch, anaphora in the new topic",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "Explain recursion simply",
+        "assistant": "Recursion is when a function calls itself on a smaller input until it reaches a base case."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "Give an example in Python",
+        "assistant": "def fact(n): return 1 if n == 0 else n * fact(n - 1)"
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "What is the time complexity of that?",
+        "assistant": "O(n) time and O(n) stack space."
+      },
+      {
+        "id": "t4",
+        "gold": "NEW",
+        "user": "Different question: how do vaccines work?",
+        "assistant": "Vaccines train the immune system to recognise a pathogen using a harmless piece or copy of it."
+      },
+      {
+        "id": "t5",
+        "gold": "t4",
+        "user": "And how are mRNA ones different?",
+        "assistant": "mRNA vaccines deliver instructions so your cells make the antigen themselves."
+      }
+    ]
+  },
+  {
+    "id": "knee-pain",
+    "note": "plain follow-ups in one topic",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "My knee hurts after running, what could cause it?",
+        "assistant": "Common causes are runner's knee, IT band syndrome or overuse; reduce mileage and ice it."
+      },
+      {
+        "id": "t2",
+        "gold": "t1",
+        "user": "What stretches help with that?",
+        "assistant": "Quad stretches, hamstring stretches, and foam rolling the IT band."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "Should I see a doctor about it?",
+        "assistant": "Yes if it swells, locks, or still hurts after two weeks of rest."
+      }
+    ]
+  },
+  {
+    "id": "laptop-then-recipe-then-laptop",
+    "note": "returning to an old thread without a cue",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "Which laptop is better for programming, a MacBook Air or a ThinkPad?",
+        "assistant": "MacBook Air for battery life and screen; ThinkPad for keyboard, Linux support and repairability."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "Give me a quick chickpea curry recipe",
+        "assistant": "Fry onion, garlic and ginger, add curry powder, chickpeas, tomatoes and coconut milk; simmer 15 minutes."
+      },
+      {
+        "id": "t3",
+        "gold": "t2",
+        "user": "Can I make the curry without coconut milk?",
+        "assistant": "Yes, use yogurt or blended cashews for creaminess."
+      },
+      {
+        "id": "t4",
+        "gold": "t1",
+        "user": "How much RAM should the ThinkPad have for running Docker?",
+        "assistant": "16 GB is the comfortable minimum; 32 GB if you run several containers."
+      }
+    ]
+  },
+  {
+    "id": "egg-joke",
+    "note": "'one' as a pronoun after an interruption",
+    "turns": [
+      {
+        "id": "t1",
+        "gold": "NEW",
+        "user": "How do I boil an egg?",
+        "assistant": "Put the egg in boiling water for about 10 minutes."
+      },
+      {
+        "id": "t2",
+        "gold": "NEW",
+        "user": "Can you tell me a joke?",
+        "assistant": "Why did the egg hide? It was a little chicken."
+      },
+      {
+        "id": "t3",
+        "gold": "t1",
+        "user": "How long for a soft one?",
+        "assistant": "About 6 minutes for a soft yolk."
+      }
+    ]
+  }
+]
